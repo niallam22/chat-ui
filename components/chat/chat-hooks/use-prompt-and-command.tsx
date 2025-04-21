@@ -26,7 +26,9 @@ export const usePromptAndCommand = () => {
     setIsAssistantPickerOpen,
     setSelectedAssistant,
     setChatSettings,
-    setChatFiles
+    setChatFiles,
+    setYoutubeState,
+    youtubeState
   } = useContext(ChatbotUIContext)
 
   const handleInputChange = (value: string) => {
@@ -34,10 +36,26 @@ export const usePromptAndCommand = () => {
     const slashTextRegex = /\/([^ ]*)$/
     const hashtagTextRegex = /#([^ ]*)$/
     const toolTextRegex = /!([^ ]*)$/
+    const youtubeRegex =
+      /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([^\s&]+)/
+
     const atMatch = value.match(atTextRegex)
     const slashMatch = value.match(slashTextRegex)
     const hashtagMatch = value.match(hashtagTextRegex)
     const toolMatch = value.match(toolTextRegex)
+    const youtubeMatch = value.match(youtubeRegex)
+
+    if (youtubeMatch) {
+      setYoutubeState({
+        showTranscribeBtn: true,
+        url: youtubeMatch[0]
+      })
+    } else if (youtubeState.showTranscribeBtn || youtubeState.url) {
+      setYoutubeState({
+        showTranscribeBtn: false,
+        url: ""
+      })
+    }
 
     if (atMatch) {
       setIsAssistantPickerOpen(true)

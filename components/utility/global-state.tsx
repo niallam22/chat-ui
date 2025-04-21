@@ -107,6 +107,10 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
   const [focusAssistant, setFocusAssistant] = useState(false)
   const [atCommand, setAtCommand] = useState("")
   const [isAssistantPickerOpen, setIsAssistantPickerOpen] = useState(false)
+  const [youtubeState, setYoutubeState] = useState({
+    showTranscribeBtn: false,
+    url: ""
+  })
 
   // ATTACHMENTS STORE
   const [chatFiles, setChatFiles] = useState<ChatFile[]>([])
@@ -299,6 +303,8 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
         setAtCommand,
         isAssistantPickerOpen,
         setIsAssistantPickerOpen,
+        setYoutubeState,
+        youtubeState,
 
         // ATTACHMENT STORE
         chatFiles,

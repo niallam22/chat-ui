@@ -21,6 +21,7 @@ import {
   processResponse,
   validateChatSettings
 } from "../chat-helpers"
+import { useYoutubeProcessor } from "@/lib/services/youtube-rag"
 
 export const useChatHandler = () => {
   const router = useRouter()
@@ -66,8 +67,11 @@ export const useChatHandler = () => {
     models,
     isPromptPickerOpen,
     isFilePickerOpen,
-    isToolPickerOpen
+    isToolPickerOpen,
+    setYoutubeState
   } = useContext(ChatbotUIContext)
+
+  const { processYoutubeUrl } = useYoutubeProcessor()
 
   const chatInputRef = useRef<HTMLTextAreaElement>(null)
 
@@ -188,6 +192,11 @@ export const useChatHandler = () => {
     }
   }
 
+  const handleProcessYoutubeVid = async (url: string) => {
+    setUserInput("")
+    setYoutubeState({ showTranscribeBtn: false, url: "" })
+    const result = await processYoutubeUrl(url)
+  }
   const handleSendMessage = async (
     messageContent: string,
     chatMessages: ChatMessage[],
@@ -417,6 +426,7 @@ export const useChatHandler = () => {
     handleSendMessage,
     handleFocusChatInput,
     handleStopMessage,
-    handleSendEdit
+    handleSendEdit,
+    handleProcessYoutubeVid
   }
 }

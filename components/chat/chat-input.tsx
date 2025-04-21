@@ -1,17 +1,21 @@
-import { ChatbotUIContext } from "@/context/context"
-import useHotkey from "@/lib/hooks/use-hotkey"
-import { LLM_LIST } from "@/lib/models/llm/llm-list"
-import { cn } from "@/lib/utils"
 import {
   IconBolt,
   IconCirclePlus,
   IconPlayerStopFilled,
-  IconSend
+  IconSend,
+  IconBrandYoutube
 } from "@tabler/icons-react"
 import Image from "next/image"
 import { FC, useContext, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
+
+import { ChatbotUIContext } from "@/context/context"
+import useHotkey from "@/lib/hooks/use-hotkey"
+import { LLM_LIST } from "@/lib/models/llm/llm-list"
+import { cn } from "@/lib/utils"
+import { useYoutubeProcessor } from "@/lib/services/youtube-rag"
+
 import { Input } from "../ui/input"
 import { TextareaAutosize } from "../ui/textarea-autosize"
 import { ChatCommandInput } from "./chat-command-input"
@@ -54,14 +58,16 @@ export const ChatInput: FC<ChatInputProps> = ({}) => {
     chatSettings,
     selectedTools,
     setSelectedTools,
-    assistantImages
+    assistantImages,
+    youtubeState
   } = useContext(ChatbotUIContext)
 
   const {
     chatInputRef,
     handleSendMessage,
     handleStopMessage,
-    handleFocusChatInput
+    handleFocusChatInput,
+    handleProcessYoutubeVid
   } = useChatHandler()
 
   const { handleInputChange } = usePromptAndCommand()
@@ -85,7 +91,11 @@ export const ChatInput: FC<ChatInputProps> = ({}) => {
     if (!isTyping && event.key === "Enter" && !event.shiftKey) {
       event.preventDefault()
       setIsPromptPickerOpen(false)
-      handleSendMessage(userInput, chatMessages, false)
+      if (youtubeState.showTranscribeBtn) {
+        handleProcessYoutubeVid(youtubeState.url)
+      } else {
+        handleSendMessage(userInput, chatMessages, false)
+      }
     }
 
     // Consolidate conditions to avoid TypeScript error
@@ -258,6 +268,18 @@ export const ChatInput: FC<ChatInputProps> = ({}) => {
             <IconPlayerStopFilled
               className="hover:bg-background animate-pulse rounded bg-transparent p-1"
               onClick={handleStopMessage}
+              size={30}
+            />
+          ) : youtubeState.showTranscribeBtn ? (
+            <IconBrandYoutube
+              className={cn(
+                "bg-primary text-secondary rounded p-1",
+                !userInput && "cursor-not-allowed opacity-50"
+              )}
+              onClick={() => {
+                if (!userInput) return
+                handleProcessYoutubeVid(youtubeState.url)
+              }}
               size={30}
             />
           ) : (
