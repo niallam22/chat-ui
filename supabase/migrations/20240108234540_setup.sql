@@ -50,10 +50,20 @@ LANGUAGE 'plpgsql'
 SECURITY DEFINER
 AS $$
 DECLARE
-  project_url TEXT := 'http://supabase_kong_chatbotui:8000';
-  service_role_key TEXT := 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'; -- full access needed for http request to storage
-  url TEXT := project_url || '/storage/v1/object/' || bucket || '/' || object;
+  project_url TEXT;
+  service_role_key TEXT;
+  url TEXT;
 BEGIN
+  -- Retrieve settings
+  project_url := current_setting('custom.supabase.project_url', true); -- 'true' means missing setting is an error
+  service_role_key := current_setting('custom.supabase.service_role_key', true);
+
+  IF project_url IS NULL OR service_role_key IS NULL THEN
+      RAISE EXCEPTION 'Custom Supabase configuration parameters not set.';
+  END IF;
+
+  url := project_url || '/storage/v1/object/' || bucket || '/' || object;
+
   SELECT
       INTO status, content
            result.status::INT, result.content::TEXT

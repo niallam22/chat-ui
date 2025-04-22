@@ -153,10 +153,22 @@ If the environment variable is set, it will disable the input in the user settin
 
 #### 2. SQL Setup
 
-In the 1st migration file `supabase/migrations/20240108234540_setup.sql` you will need to replace 2 values with the values you got above:
+How to Set:
+You need superuser privileges to set these system-wide. Connect to your database as a superuser (e.g., postgres) and run:
 
-- `project_url` (line 53): `http://supabase_kong_chatbotui:8000` (default) can remain unchanged if you don't change your `project_id` in the `config.toml` file
-- `service_role_key` (line 54): You got this value from running `supabase status`
+SQL
+
+-- Make sure to replace with your actual values!
+ALTER SYSTEM SET custom.supabase.project_url = 'http://supabase_kong_chatbotui:8000';
+ALTER SYSTEM SET custom.supabase.service_role_key = 'your_actual_service_role_key_here';
+
+-- You need to reload the configuration for changes to take effect
+SELECT pg_reload_conf();
+
+~~In the 1st migration file `supabase/migrations/20240108234540_setup.sql` you will need to replace 2 values with the values you got above:~~
+
+~~- `project_url` (line 53): `http://supabase_kong_chatbotui:8000` (default) can remain unchanged if you don't change your `project_id` in the `config.toml` file~~
+~~- `service_role_key` (line 54): You got this value from running `supabase status`~~
 
 This prevents issues with storage files not being deleted properly.
 
