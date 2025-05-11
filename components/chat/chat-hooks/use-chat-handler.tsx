@@ -6,10 +6,15 @@ import { updateChat } from "@/db/chats"
 import { getCollectionFilesByCollectionId } from "@/db/collection-files"
 import { deleteMessagesIncludingAndAfter } from "@/db/messages"
 import { buildFinalMessages } from "@/lib/build-prompt"
+import {
+  useEmbedAndGetTranscription,
+  useYoutubeTranscriber
+} from "@/lib/services/youtube-rag"
 import { Tables } from "@/supabase/types"
 import { ChatMessage, ChatPayload, LLMID, ModelProvider } from "@/types"
+import { useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
-import { useContext, useEffect, useRef } from "react"
+import { useContext, useEffect, useRef, useState } from "react"
 import { LLM_LIST } from "../../../lib/models/llm/llm-list"
 import {
   createTempMessages,
@@ -21,7 +26,6 @@ import {
   processResponse,
   validateChatSettings
 } from "../chat-helpers"
-import { useYoutubeProcessor } from "@/lib/services/youtube-rag"
 
 export const useChatHandler = () => {
   const router = useRouter()
@@ -68,10 +72,12 @@ export const useChatHandler = () => {
     isPromptPickerOpen,
     isFilePickerOpen,
     isToolPickerOpen,
-    setYoutubeState
+    setYoutubeState,
+    youtubeState,
+    setYoutubeTranscription,
+    youtubeTranscription,
+    collections
   } = useContext(ChatbotUIContext)
-
-  const { processYoutubeUrl } = useYoutubeProcessor()
 
   const chatInputRef = useRef<HTMLTextAreaElement>(null)
 
@@ -192,11 +198,86 @@ export const useChatHandler = () => {
     }
   }
 
+  const [jobId, setJobId] = useState("")
+  const llmTwinCollctionId =
+    selectedWorkspace?.id || selectedChat?.id || "default"
+  const queryClient = useQueryClient()
+
+  const {
+    processYoutubeUrl,
+    isSuccess: isTranscriptionSent,
+    isPending: isYoutubePending,
+    error: isYoutubeError,
+    data: transcribeAPIData,
+    reset
+  } = useYoutubeTranscriber(youtubeState.url)
+
+  const { isSuccess: isTranscriptionSuccess, data: transcriptionResData } =
+    useEmbedAndGetTranscription(jobId, llmTwinCollctionId)
+
+  // const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const intervalCounterRef = useRef<number>(0)
+
+  useEffect(() => {
+    // Only set up polling if we have a job ID and don't have the transcription data
+    if (
+      transcribeAPIData?.status === "accepted" &&
+      transcribeAPIData?.data.job_id &&
+      transcriptionResData?.message != "completed"
+    ) {
+      setJobId(transcribeAPIData.data.job_id)
+      const interval = setInterval(() => {
+        // polling logic here
+        if (transcriptionResData?.message == "completed") {
+          const transcription = transcriptionResData?.data
+          setYoutubeTranscription(transcription ?? "")
+          reset()
+          queryClient.removeQueries({
+            queryKey: [jobId, llmTwinCollctionId]
+          })
+          clearInterval(interval)
+        }
+
+        intervalCounterRef.current++
+        if (intervalCounterRef.current >= 45) {
+          clearInterval(interval)
+          intervalCounterRef.current = 0
+        }
+        queryClient.invalidateQueries({ queryKey: [jobId, llmTwinCollctionId] })
+      }, 5000)
+
+      // Cleanup function that runs when component unmounts or dependencies change
+      return () => {
+        clearInterval(interval)
+        intervalCounterRef.current = 0
+      }
+    }
+  }, [
+    jobId,
+    transcriptionResData?.data,
+    selectedWorkspace?.id,
+    selectedChat?.id,
+    transcribeAPIData?.status
+  ])
+
+  // Simplify your handler
   const handleProcessYoutubeVid = async (url: string) => {
-    setUserInput("")
-    setYoutubeState({ showTranscribeBtn: false, url: "" })
-    const result = await processYoutubeUrl(url)
+    try {
+      setUserInput("")
+      setYoutubeState({ showTranscribeBtn: false, url: url })
+      await processYoutubeUrl()
+
+      // if (transcribeAPIData?.status === "accepted") {
+      //   setJobId(transcribeAPIData.job_id)
+      //   // The useEffect will handle polling now
+      // } else {
+      //   throw new Error("Transcription unsuccessful or pending")
+      // }
+    } catch (error) {
+      console.log(`Error processing YouTube URL: ${error}`)
+    }
   }
+
   const handleSendMessage = async (
     messageContent: string,
     chatMessages: ChatMessage[],

@@ -111,6 +111,7 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
     showTranscribeBtn: false,
     url: ""
   })
+  const [youtubeTranscription, setYoutubeTranscription] = useState("")
 
   // ATTACHMENTS STORE
   const [chatFiles, setChatFiles] = useState<ChatFile[]>([])
@@ -305,6 +306,8 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
         setIsAssistantPickerOpen,
         setYoutubeState,
         youtubeState,
+        setYoutubeTranscription,
+        youtubeTranscription,
 
         // ATTACHMENT STORE
         chatFiles,

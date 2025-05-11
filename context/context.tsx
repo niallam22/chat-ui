@@ -116,6 +116,8 @@ interface ChatbotUIContext {
     SetStateAction<{ showTranscribeBtn: boolean; url: string }>
   >
   youtubeState: { showTranscribeBtn: boolean; url: string }
+  setYoutubeTranscription: Dispatch<SetStateAction<string>>
+  youtubeTranscription: string
 
   // ATTACHMENTS STORE
   chatFiles: ChatFile[]
@@ -244,6 +246,8 @@ export const ChatbotUIContext = createContext<ChatbotUIContext>({
   setIsAssistantPickerOpen: () => {},
   setYoutubeState: () => {},
   youtubeState: { showTranscribeBtn: false, url: "" },
+  setYoutubeTranscription: () => {},
+  youtubeTranscription: "",
 
   // ATTACHMENTS STORE
   chatFiles: [],

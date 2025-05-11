@@ -1,13 +1,16 @@
-const API_URL = process.env.NEXT_PUBLIC_LIGHT_RAG_API_URL
+import { TranscribeResult } from "@/app/api/chat/youtube/transcribe/route"
+import { YoutubeTranscribeRes } from "./types"
 
-export const transcribeAndEmbed = async (videoUrl: string) => {
-  const response = await fetch(`${API_URL}/insert_youtube`, {
+export const transcribe = async (
+  videoUrl: string
+): Promise<TranscribeResult> => {
+  const response = await fetch(`/api/chat/youtube/transcribe`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      video_ids: [videoUrl]
+      videoUrls: [videoUrl]
     })
   })
 
@@ -15,6 +18,22 @@ export const transcribeAndEmbed = async (videoUrl: string) => {
     const errorData = await response.json().catch(() => null)
     throw new Error(errorData?.detail || "Failed to process video")
   }
+  const resData = await response.json()
+  return resData
+}
 
-  return response.json()
+export const embedAndGetTranscription = async (
+  job_id: string,
+  collection_id: string
+): Promise<YoutubeTranscribeRes> => {
+  const response = await fetch(
+    `/api/chat/youtube/transcribe/${job_id}/${collection_id}`
+  )
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null)
+    throw new Error(errorData?.detail || "Failed to process video")
+  }
+  const resData = await response.json()
+  return resData
 }
