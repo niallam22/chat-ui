@@ -118,6 +118,10 @@ export const ProfileSettings: FC<ProfileSettingsProps> = ({}) => {
     profile?.openrouter_api_key || ""
   )
 
+  const [llmTwinAPIKey, setLlmTwinAPIKey] = useState(
+    profile?.llm_twin_api_key || ""
+  )
+
   const handleSignOut = async () => {
     await supabase.auth.signOut()
     router.push("/login")
@@ -147,6 +151,7 @@ export const ProfileSettings: FC<ProfileSettingsProps> = ({}) => {
       openai_organization_id: openaiOrgID,
       anthropic_api_key: anthropicAPIKey,
       google_gemini_api_key: googleGeminiAPIKey,
+      llm_twin_api_key: llmTwinAPIKey,
       mistral_api_key: mistralAPIKey,
       groq_api_key: groqAPIKey,
       perplexity_api_key: perplexityAPIKey,
@@ -172,7 +177,8 @@ export const ProfileSettings: FC<ProfileSettingsProps> = ({}) => {
       "mistral",
       "groq",
       "perplexity",
-      "openrouter"
+      "openrouter",
+      "llm-twin"
     ]
 
     providers.forEach(async provider => {
@@ -655,6 +661,22 @@ export const ProfileSettings: FC<ProfileSettingsProps> = ({}) => {
                       type="password"
                       value={googleGeminiAPIKey}
                       onChange={e => setGoogleGeminiAPIKey(e.target.value)}
+                    />
+                  </>
+                )}
+              </div>
+
+              <div className="space-y-1">
+                {envKeyMap["google"] ? (
+                  <Label>LLM Twin API key set by admin.</Label>
+                ) : (
+                  <>
+                    <Label>LLM Twin API Key</Label>
+                    <Input
+                      placeholder="LLM Twin API Key"
+                      type="password"
+                      value={llmTwinAPIKey}
+                      onChange={e => setLlmTwinAPIKey(e.target.value)}
                     />
                   </>
                 )}

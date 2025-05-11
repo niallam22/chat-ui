@@ -14,6 +14,7 @@ interface APIStepProps {
   azureOpenaiEmbeddingsID: string
   anthropicAPIKey: string
   googleGeminiAPIKey: string
+  llmTwinAPIKey: string
   mistralAPIKey: string
   groqAPIKey: string
   perplexityAPIKey: string
@@ -30,6 +31,7 @@ interface APIStepProps {
   onAzureOpenaiEmbeddingsIDChange: (value: string) => void
   onAnthropicAPIKeyChange: (value: string) => void
   onGoogleGeminiAPIKeyChange: (value: string) => void
+  onLlmTwinAPIKeyChange: (value: string) => void
   onMistralAPIKeyChange: (value: string) => void
   onGroqAPIKeyChange: (value: string) => void
   onPerplexityAPIKeyChange: (value: string) => void
@@ -47,6 +49,7 @@ export const APIStep: FC<APIStepProps> = ({
   azureOpenaiEmbeddingsID,
   anthropicAPIKey,
   googleGeminiAPIKey,
+  llmTwinAPIKey,
   mistralAPIKey,
   groqAPIKey,
   perplexityAPIKey,
@@ -62,6 +65,7 @@ export const APIStep: FC<APIStepProps> = ({
   onAzureOpenaiEmbeddingsIDChange,
   onAnthropicAPIKeyChange,
   onGoogleGeminiAPIKeyChange,
+  onLlmTwinAPIKeyChange,
   onMistralAPIKeyChange,
   onGroqAPIKeyChange,
   onPerplexityAPIKeyChange,
@@ -193,6 +197,17 @@ export const APIStep: FC<APIStepProps> = ({
           type="password"
           value={googleGeminiAPIKey}
           onChange={e => onGoogleGeminiAPIKeyChange(e.target.value)}
+        />
+      </div>
+
+      <div className="space-y-1">
+        <Label>Google Gemini API Key</Label>
+
+        <Input
+          placeholder="Google Gemini API Key"
+          type="password"
+          value={llmTwinAPIKey}
+          onChange={e => onLlmTwinAPIKeyChange(e.target.value)}
         />
       </div>
 
