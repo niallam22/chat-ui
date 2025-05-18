@@ -212,10 +212,9 @@ export const useChatHandler = () => {
     reset
   } = useYoutubeTranscriber(youtubeState.url)
 
-  const { isSuccess: isTranscriptionSuccess, data: transcriptionResData } =
+  const { isTranscriptionCompletedRef, data: transcriptionResData } =
     useEmbedAndGetTranscription(jobId, llmTwinCollctionId)
 
-  // const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const intervalCounterRef = useRef<number>(0)
 
   useEffect(() => {
@@ -225,25 +224,24 @@ export const useChatHandler = () => {
       transcribeAPIData?.data.job_id &&
       transcriptionResData?.message != "completed"
     ) {
+      console.log("preinterval")
+
       setJobId(transcribeAPIData.data.job_id)
       const interval = setInterval(() => {
         // polling logic here
-        if (transcriptionResData?.message == "completed") {
-          const transcription = transcriptionResData?.data
-          setYoutubeTranscription(transcription ?? "")
-          reset()
-          queryClient.removeQueries({
-            queryKey: [jobId, llmTwinCollctionId]
-          })
-          clearInterval(interval)
-        }
 
-        intervalCounterRef.current++
-        if (intervalCounterRef.current >= 45) {
+        if (
+          intervalCounterRef.current >= 45 ||
+          isTranscriptionCompletedRef.current === true
+        ) {
           clearInterval(interval)
           intervalCounterRef.current = 0
+        } else {
+          intervalCounterRef.current++
+          queryClient.invalidateQueries({
+            queryKey: [jobId, llmTwinCollctionId]
+          })
         }
-        queryClient.invalidateQueries({ queryKey: [jobId, llmTwinCollctionId] })
       }, 5000)
 
       // Cleanup function that runs when component unmounts or dependencies change
@@ -254,11 +252,20 @@ export const useChatHandler = () => {
     }
   }, [
     jobId,
-    transcriptionResData?.data,
+    // transcriptionResData?.data,
     selectedWorkspace?.id,
     selectedChat?.id,
     transcribeAPIData?.status
   ])
+
+  useEffect(() => {
+    if (isTranscriptionCompletedRef.current) {
+      const transcription = transcriptionResData?.data
+      setYoutubeTranscription(transcription ?? "")
+      reset()
+      isTranscriptionCompletedRef.current = false
+    }
+  }, [transcriptionResData?.message, isTranscriptionCompletedRef.current])
 
   // Simplify your handler
   const handleProcessYoutubeVid = async (url: string) => {

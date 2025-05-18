@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query"
 
+import { useEffect, useRef } from "react"
 import { toast } from "sonner"
 import { embedAndGetTranscription, transcribe } from "./services"
 
@@ -36,10 +37,16 @@ export const useEmbedAndGetTranscription = (
   job_id: string,
   collection_id: string
 ) => {
+  const isTranscriptionCompletedRef = useRef<boolean>(false)
   const { isSuccess, isError, data } = useQuery({
     enabled: !!job_id,
     queryKey: [job_id, collection_id],
     queryFn: () => embedAndGetTranscription(job_id, collection_id)
   })
-  return { isSuccess, isError, data }
+  useEffect(() => {
+    if (data?.message === "completed") {
+      isTranscriptionCompletedRef.current = true
+    }
+  }, [data?.message])
+  return { isTranscriptionCompletedRef, isError, data }
 }

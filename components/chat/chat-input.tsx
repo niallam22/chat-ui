@@ -23,6 +23,7 @@ import { useChatHandler } from "./chat-hooks/use-chat-handler"
 import { useChatHistoryHandler } from "./chat-hooks/use-chat-history"
 import { usePromptAndCommand } from "./chat-hooks/use-prompt-and-command"
 import { useSelectFileHandler } from "./chat-hooks/use-select-file-handler"
+import { YoutubeTranscript } from "./youtube-transcript"
 
 interface ChatInputProps {}
 
@@ -221,7 +222,10 @@ export const ChatInput: FC<ChatInputProps> = ({}) => {
       </div>
 
       <div className="border-input relative mt-3 flex min-h-[60px] w-full items-center justify-center rounded-xl border-2">
-        <div className="absolute bottom-[76px] left-0 max-h-[300px] w-full overflow-auto rounded-xl dark:border-none">
+        <div className="absolute bottom-[76px] left-0 w-full overflow-auto rounded-xl dark:border-none">
+          <YoutubeTranscript />
+        </div>
+        <div className="absolute bottom-[126px] left-0 max-h-[300px] w-full overflow-auto rounded-xl dark:border-none">
           <ChatCommandInput />
         </div>
 
