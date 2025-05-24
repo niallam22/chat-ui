@@ -7,6 +7,9 @@ export type LLMID =
   | MistralLLMID
   | GroqLLMID
   | PerplexityLLMID
+  | LlmTwinLLMID
+
+export type LlmTwinLLMID = "chitty-chatty"
 
 // OpenAI Models (UPDATED 5/13/24)
 export type OpenAILLMID =

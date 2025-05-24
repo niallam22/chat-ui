@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS profiles (
     azure_openai_api_key TEXT CHECK (char_length(azure_openai_api_key) <= 1000),
     azure_openai_endpoint TEXT CHECK (char_length(azure_openai_endpoint) <= 1000),
     google_gemini_api_key TEXT CHECK (char_length(google_gemini_api_key) <= 1000),
+    llm_twin_api_key TEXT CHECK (char_length(llm_twin_api_key) <= 1000),
     mistral_api_key TEXT CHECK (char_length(mistral_api_key) <= 1000),
     openai_api_key TEXT CHECK (char_length(openai_api_key) <= 1000),
     openai_organization_id TEXT CHECK (char_length(openai_organization_id) <= 1000),
@@ -95,7 +96,7 @@ BEGIN
     random_username := 'user' || substr(replace(gen_random_uuid()::text, '-', ''), 1, 16);
 
     -- Create a profile for the new user
-    INSERT INTO public.profiles(user_id, anthropic_api_key, azure_openai_35_turbo_id, azure_openai_45_turbo_id, azure_openai_45_vision_id, azure_openai_api_key, azure_openai_endpoint, google_gemini_api_key, has_onboarded, image_url, image_path, mistral_api_key, display_name, bio, openai_api_key, openai_organization_id, perplexity_api_key, profile_context, use_azure_openai, username)
+    INSERT INTO public.profiles(user_id, anthropic_api_key, azure_openai_35_turbo_id, azure_openai_45_turbo_id, azure_openai_45_vision_id, azure_openai_api_key, azure_openai_endpoint, google_gemini_api_key, llm_twin_api_key, has_onboarded, image_url, image_path, mistral_api_key, display_name, bio, openai_api_key, openai_organization_id, perplexity_api_key, profile_context, use_azure_openai, username)
     VALUES(
         NEW.id,
         '',

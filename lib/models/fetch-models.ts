@@ -5,7 +5,14 @@ import { LLM_LIST_MAP } from "./llm/llm-list"
 
 export const fetchHostedModels = async (profile: Tables<"profiles">) => {
   try {
-    const providers = ["google", "anthropic", "mistral", "groq", "perplexity"]
+    const providers = [
+      "google",
+      "anthropic",
+      "mistral",
+      "groq",
+      "perplexity",
+      "llm_twin"
+    ]
 
     if (profile.use_azure_openai) {
       providers.push("azure")
@@ -42,7 +49,7 @@ export const fetchHostedModels = async (profile: Tables<"profiles">) => {
         }
       }
     }
-
+    console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!", modelsToAdd)
     return {
       envKeyMap: data.isUsingEnvKeyMap,
       hostedModels: modelsToAdd
