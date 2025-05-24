@@ -3,7 +3,7 @@ import { checkApiKey, getServerProfile } from "@/lib/server/server-chat-helpers"
 import { getBase64FromDataURL, getMediaTypeFromDataURL } from "@/lib/utils"
 import { ChatSettings } from "@/types"
 import Anthropic from "@anthropic-ai/sdk"
-import { AnthropicStream, StreamingTextResponse } from "ai"
+// import { AnthropicStream, StreamingTextResponse } from "ai"
 import { NextRequest, NextResponse } from "next/server"
 
 export const runtime = "edge"
@@ -71,8 +71,8 @@ export async function POST(request: NextRequest) {
       })
 
       try {
-        const stream = AnthropicStream(response)
-        return new StreamingTextResponse(stream)
+        // const stream = AnthropicStream(response)
+        // return new StreamingTextResponse(stream)
       } catch (error: any) {
         console.error("Error parsing Anthropic API response:", error)
         return new NextResponse(
