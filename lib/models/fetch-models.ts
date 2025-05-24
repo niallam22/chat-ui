@@ -11,7 +11,7 @@ export const fetchHostedModels = async (profile: Tables<"profiles">) => {
       "mistral",
       "groq",
       "perplexity",
-      "llm-twin"
+      "llm_twin"
     ]
 
     if (profile.use_azure_openai) {
@@ -49,7 +49,7 @@ export const fetchHostedModels = async (profile: Tables<"profiles">) => {
         }
       }
     }
-
+    console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!", modelsToAdd)
     return {
       envKeyMap: data.isUsingEnvKeyMap,
       hostedModels: modelsToAdd

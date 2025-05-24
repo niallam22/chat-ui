@@ -6,8 +6,8 @@ import { createMessageFileItems } from "@/db/message-file-items"
 import { createMessages, updateMessage } from "@/db/messages"
 import { uploadMessageImage } from "@/db/storage/message-images"
 import {
-  buildFinalMessages,
-  adaptMessagesForGoogleGemini
+  adaptMessagesForGoogleGemini,
+  buildFinalMessages
 } from "@/lib/build-prompt"
 import { consumeReadableStream } from "@/lib/consume-stream"
 import { Tables, TablesInsert } from "@/supabase/types"
@@ -199,7 +199,8 @@ export const handleHostedChat = async (
   setIsGenerating: React.Dispatch<React.SetStateAction<boolean>>,
   setFirstTokenReceived: React.Dispatch<React.SetStateAction<boolean>>,
   setChatMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>,
-  setToolInUse: React.Dispatch<React.SetStateAction<string>>
+  setToolInUse: React.Dispatch<React.SetStateAction<string>>,
+  llmTwinCollctionId: string | null
 ) => {
   const provider =
     modelData.provider === "openai" && profile.use_azure_openai
@@ -224,7 +225,8 @@ export const handleHostedChat = async (
   const requestBody = {
     chatSettings: payload.chatSettings,
     messages: formattedMessages,
-    customModelId: provider === "custom" ? modelData.hostedId : ""
+    customModelId: provider === "custom" ? modelData.hostedId : "",
+    collectionId: llmTwinCollctionId
   }
 
   const response = await fetchChatResponse(
@@ -255,7 +257,8 @@ export const fetchChatResponse = async (
   isHosted: boolean,
   controller: AbortController,
   setIsGenerating: React.Dispatch<React.SetStateAction<boolean>>,
-  setChatMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>
+  setChatMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>,
+  collection_id?: string
 ) => {
   const response = await fetch(url, {
     method: "POST",

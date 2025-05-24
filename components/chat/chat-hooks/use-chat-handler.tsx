@@ -430,7 +430,8 @@ export const useChatHandler = () => {
             setIsGenerating,
             setFirstTokenReceived,
             setChatMessages,
-            setToolInUse
+            setToolInUse,
+            llmTwinCollctionId
           )
         }
       }
