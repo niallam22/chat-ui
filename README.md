@@ -10,6 +10,8 @@ View the latest demo [here](https://x.com/mckaywrigley/status/173827324228315177
 
 ## Updates
 
+Added functionality to transcribe youtube videos, process them into semantic paragraphs, process through rag pipeline.
+
 Hey everyone! I've heard your feedback and am working hard on a big update.
 
 Things like simpler deployment, better backend compatibility, and improved mobile layouts are on their way.
