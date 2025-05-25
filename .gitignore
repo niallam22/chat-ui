@@ -47,3 +47,4 @@ workbox-*.js
 workbox-*.js.map
 
 notes.txt
+docker-test.sh
