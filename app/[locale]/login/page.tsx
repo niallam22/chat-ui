@@ -3,7 +3,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { SubmitButton } from "@/components/ui/submit-button"
 import { createClient } from "@/lib/supabase/server"
-import { Database } from "@/supabase/types"
 import { createServerClient } from "@supabase/ssr"
 import { get } from "@vercel/edge-config"
 import { Metadata } from "next"
@@ -20,13 +19,24 @@ export default async function Login({
   searchParams: { message: string }
 }) {
   const cookieStore = cookies()
-  const supabase = createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  const supabase = createServerClient(
+    process.env.SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            )
+          } catch {
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
         }
       }
     }
@@ -34,18 +44,26 @@ export default async function Login({
   const session = (await supabase.auth.getSession()).data.session
 
   if (session) {
-    const { data: homeWorkspace, error } = await supabase
-      .from("workspaces")
-      .select("*")
-      .eq("user_id", session.user.id)
-      .eq("is_home", true)
-      .single()
+    try {
+      const { data: homeWorkspace, error } = await supabase
+        .from("workspaces")
+        .select("*")
+        .eq("user_id", session.user.id)
+        .eq("is_home", true)
+        .single()
 
-    if (!homeWorkspace) {
-      throw new Error(error.message)
+      if (!homeWorkspace) {
+        throw new Error(error?.message || "No Workspace found")
+      }
+
+      return redirect(`/${homeWorkspace.id}/chat`)
+    } catch (err) {
+      // Handle the error gracefully - redirect to login with error message
+      // const errorMessage =
+      //   err instanceof Error ? err.message : "Database connection failed"
+      // return redirect(`/login`)
+      searchParams.message = "Connection error. Please try again."
     }
-
-    return redirect(`/${homeWorkspace.id}/chat`)
   }
 
   const signIn = async (formData: FormData) => {

@@ -1,14 +1,13 @@
 import { Providers } from "@/components/utility/providers"
 import TranslationsProvider from "@/components/utility/translations-provider"
 import initTranslations from "@/lib/i18n"
-import { Database } from "@/supabase/types"
 import { createServerClient } from "@supabase/ssr"
 import { Metadata, Viewport } from "next"
 import { Inter } from "next/font/google"
 import { cookies } from "next/headers"
 import { ReactNode } from "react"
-import "./globals.css"
 import { ClientWrapper } from "./client-wrapper"
+import "./globals.css"
 
 const inter = Inter({ subsets: ["latin"] })
 const APP_NAME = "Chatbot UI"
@@ -70,13 +69,24 @@ export default async function RootLayout({
   params: { locale }
 }: RootLayoutProps) {
   const cookieStore = cookies()
-  const supabase = createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  const supabase = createServerClient(
+    process.env.SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            )
+          } catch {
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
         }
       }
     }
