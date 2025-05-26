@@ -49,7 +49,6 @@ export const fetchHostedModels = async (profile: Tables<"profiles">) => {
         }
       }
     }
-    console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!", modelsToAdd)
     return {
       envKeyMap: data.isUsingEnvKeyMap,
       hostedModels: modelsToAdd

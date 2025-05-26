@@ -201,10 +201,10 @@ export const APIStep: FC<APIStepProps> = ({
       </div>
 
       <div className="space-y-1">
-        <Label>Google Gemini API Key</Label>
+        <Label>LLM Twin API Key</Label>
 
         <Input
-          placeholder="Google Gemini API Key"
+          placeholder="LLM Twin API Key"
           type="password"
           value={llmTwinAPIKey}
           onChange={e => onLlmTwinAPIKeyChange(e.target.value)}
