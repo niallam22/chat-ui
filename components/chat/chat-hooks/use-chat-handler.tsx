@@ -222,7 +222,7 @@ export const useChatHandler = () => {
     if (
       transcribeAPIData?.status === "accepted" &&
       transcribeAPIData?.data.job_id &&
-      transcriptionResData?.message != "completed"
+      !transcriptionResData?.message?.startsWith("completed")
     ) {
       console.log("preinterval")
 
@@ -232,7 +232,8 @@ export const useChatHandler = () => {
 
         if (
           intervalCounterRef.current >= 45 ||
-          isTranscriptionCompletedRef.current === true
+          isTranscriptionCompletedRef.current === true ||
+          transcriptionResData?.message?.startsWith("completed")
         ) {
           clearInterval(interval)
           intervalCounterRef.current = 0
@@ -252,14 +253,14 @@ export const useChatHandler = () => {
     }
   }, [
     jobId,
-    // transcriptionResData?.data,
+    // transcriptionResData?.message,
     selectedWorkspace?.id,
     selectedChat?.id,
     transcribeAPIData?.status
   ])
 
   useEffect(() => {
-    if (isTranscriptionCompletedRef.current) {
+    if (transcriptionResData?.message?.startsWith("completed")) {
       const transcription = transcriptionResData?.data
       setYoutubeTranscription(transcription ?? "")
       reset()
