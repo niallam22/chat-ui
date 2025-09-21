@@ -45,7 +45,11 @@ FROM node:20.19.0-slim AS runner
 WORKDIR /app
 
 # Install curl for health check
-RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+RUN rm -rf /var/lib/apt/lists/* && \
+    apt-get clean && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends curl && \
+    rm -rf /var/lib/apt/lists/*
 
 # Runtime environment variables
 ENV NODE_ENV=production
