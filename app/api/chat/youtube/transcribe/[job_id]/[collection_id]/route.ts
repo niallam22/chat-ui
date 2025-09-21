@@ -28,6 +28,7 @@ export async function GET(
         { status: 400 }
       )
     }
+
     //TODO: add db check to see if transcription already complete (first add db field for the rag transcription)
     const url = `${baseURL}/job/${job_id}`
     const res = await fetch(url, {
@@ -54,58 +55,98 @@ export async function GET(
 
     switch (status) {
       case "success":
-        console.log(
-          "now we need to post the transcription to llm twin to be embedded"
-        )
-        const profile = await getServerProfile()
+        console.log("Transcription completed successfully")
+        console.log("Attempting to post to LLM twin for embedding...")
 
-        checkApiKey(profile.llm_twin_api_key, "llm-twin")
-        if (!profile.llm_twin_api_key) {
-          throw new Error("No LLM Twin API key or URL set")
+        // Prepare the base response that we'll return to UI
+        const transcriptionResponse = {
+          message: "completed",
+          data: responseData.data.transcription,
+          embedding_status: "pending" // We'll update this based on LLM twin result
         }
 
-        const response = await fetch(
-          `${process.env.LLM_TWIN_URL}/crawl/raw_text`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-API-Key": profile.llm_twin_api_key
-            },
-            body: JSON.stringify({
-              text: responseData.data.transcription,
-              collection_id: collection_id,
-              user_info: { username: "f_user" },
-              metadata: { source_platform: "chat_ui" }
-            })
+        // Try to post to LLM twin, but don't let it block the response
+        try {
+          const profile = await getServerProfile()
+          checkApiKey(profile.llm_twin_api_key, "llm-twin")
+
+          if (!profile.llm_twin_api_key) {
+            console.warn("No LLM Twin API key set - skipping embedding")
+            transcriptionResponse.embedding_status = "skipped"
+            transcriptionResponse.message =
+              "completed (embedding skipped - no API key)"
+          } else {
+            const llmTwinResponse = await fetch(
+              `${process.env.LLM_TWIN_URL}/crawl/raw_text`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "X-API-Key": profile.llm_twin_api_key
+                },
+                body: JSON.stringify({
+                  text: responseData.data.transcription,
+                  collection_id: collection_id,
+                  user_info: { username: "f_user" },
+                  metadata: { source_platform: "chat_ui" }
+                })
+              }
+            )
+
+            if (!llmTwinResponse.ok) {
+              const errorText = await llmTwinResponse
+                .text()
+                .catch(() => "Unknown error")
+              console.error(
+                `LLM Twin API failed (${llmTwinResponse.status}):`,
+                errorText
+              )
+
+              // Don't throw - just log and continue
+              transcriptionResponse.embedding_status = "failed"
+              transcriptionResponse.message = "completed (embedding failed)"
+            } else {
+              const llmTwinData = await llmTwinResponse.json().catch(() => null)
+
+              if (llmTwinData?.status === 200) {
+                console.log("✅ Successfully posted to LLM twin")
+                transcriptionResponse.embedding_status = "success"
+                transcriptionResponse.message =
+                  "completed (embedded successfully)"
+              } else {
+                console.error("LLM Twin returned non-200 status:", llmTwinData)
+                transcriptionResponse.embedding_status = "failed"
+                transcriptionResponse.message = "completed (embedding failed)"
+              }
+            }
           }
-        )
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => null)
-          throw new Error(errorData?.detail || "Failed to process video")
+        } catch (llmTwinError: any) {
+          // Catch any errors from the LLM twin process
+          console.error("Error posting to LLM twin:", llmTwinError.message)
+          transcriptionResponse.embedding_status = "failed"
+          transcriptionResponse.message = "completed (embedding failed)"
         }
-        const resData = await response.json()
 
-        if (resData.status != 200) {
-          throw new Error("Embedding job not accepted")
-        }
-        // TODO: (optimisation for later) check if embedding is successful so that we dont save doc to db if unsuccessful or we save it with unprocessed status
-        // TODO: save transcription to db with ref to collection_id ....
+        // TODO: Save transcription to db with ref to collection_id and embedding status
+        // This should happen regardless of embedding success/failure
 
-        return NextResponse.json<YoutubeTranscribeRes>(
-          { message: "completed", data: responseData.data.transcription },
-          { status: 200 }
-        )
+        // Always return the transcription data to the UI
+        return NextResponse.json<YoutubeTranscribeRes>(transcriptionResponse, {
+          status: 200
+        })
+
       case "processing":
         return NextResponse.json<YoutubeTranscribeRes>(
           { message: "processing", data: "No data available" },
           { status: 202 }
         )
+
       case "error":
         return NextResponse.json<YoutubeTranscribeRes>(
           { message: "error", data: "No data available" },
           { status: 400 }
         )
+
       default:
         throw new Error("Unexpected status response from transcriber api")
     }
@@ -120,7 +161,12 @@ export async function GET(
       errorMessage =
         "YouTube Transcription API Key is incorrect. Please fix it in your profile settings."
     }
-    console.log("ooooooohhh nooooo!!!", errorMessage, errorCode)
+
+    console.error(
+      "❌ YouTube transcription route error:",
+      errorMessage,
+      errorCode
+    )
 
     return NextResponse.json({ message: errorMessage }, { status: errorCode })
   }
