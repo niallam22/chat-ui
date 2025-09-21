@@ -39,8 +39,6 @@ ENV NEXT_PUBLIC_USER_FILE_SIZE_LIMIT=$NEXT_PUBLIC_USER_FILE_SIZE_LIMIT
 # Your existing build command
 RUN npm run build
 
-RUN npm run build
-
 # Production image, copy all the files and run next
 FROM node:20.19.0-slim AS runner
 WORKDIR /app
